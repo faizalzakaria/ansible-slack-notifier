@@ -1,0 +1,13 @@
+---
+
+- name: include vars
+  include_vars: "main.yml"
+
+- name: copy post_to_slack.rb to /scripts/post_to_slack.rb
+  become: true
+  template:
+    src: "./files/post_to_slack.rb.j2"
+    dest: "/scripts/post_to_slack.rb"
+    owner: root
+    group: root
+    mode: 0644

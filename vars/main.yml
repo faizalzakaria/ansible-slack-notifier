@@ -1,0 +1,6 @@
+---
+
+slack_webhook_url: 'https://slack.com/toto'
+slack_mentions: '@here'
+slack_channel: '#infra'
+app_name: 'code3'

@@ -1,0 +1,144 @@
+#
+# Auto generated script.
+# Faizal Zakaria
+#
+# Ex.
+#   ruby post_to_slack.rb --service 'code3:sidekiq' --message 'Sidekiq of code3 died' --alert danger
+#
+
+require 'json'
+require 'optparse'
+require 'net/http'
+require 'net/https'
+
+def parse_options(argv)
+
+  #######################################
+  # Please change the following as needed
+  #######################################
+
+  slack_post_url        = '{{ slack_webhook_url }}'
+  slack_user_name       = 'Monit'
+  slack_user_emoji      = ':interrobang:'
+  slack_mentions        = '{{ slack_mentions }}'
+  slack_channel_name    = '{{ slack_channel }}' # remember to prepend a hashtag
+  app_name              = '{{ app_name }}'
+
+  default_message_color = '#439FE0' # a nice neutral blue as default
+
+  #######################################
+
+  opts = {}
+  opts[:slack_options] = {}
+  opts[:slack_options][:attachments] = []
+
+  attachment = {}
+  attachment[:fields] = []
+
+  # fields
+  service = {}
+  service[:title] = "Service"
+  service[:short] = "true"
+  message = {}
+  message[:title] = "Message"
+  server = {}
+  server[:title] = "Server"
+  server[:short] = "true"
+  user = {}
+  user[:title] = "User"
+  user[:short] = "true"
+
+  @parser = OptionParser.new do |o|
+
+    ### Optional options means they don't have to be set as part of the shell command, because they have defaults specified in the file.
+
+    o.on '--slack-url URL', 'Slack URL to post to. Optional: Yes Defaults: Set in script Accepts: String' do |arg|
+      opts[:slack_url] = arg
+    end
+
+    # Main body
+
+    o.on '--name NAME', 'User name of the bot. Optional: Yes Defaults: Set in script Accepts: #String' do |arg|
+      opts[:slack_options][:username] = arg
+    end
+
+    o.on '--channel CHANNEL', 'Slack channel to post to. Optional: Yes Defaults: Set in script Accepts: String' do |arg|
+      opts[:slack_options][:channel] = arg
+    end
+
+    o.on '--app APP', 'Name of the app. Optional: Yes Defaults: Set in script Accepts: String' do |arg|
+      opts[:slack_options][:text] = "*#{arg}* has sent a message:"
+    end
+
+
+    o.on '--emoji EMOJI', 'Optional: Yes Defaults: Set in script as :interrobang: Accepts: :String:' do |arg|
+      opts[:slack_options][:icon_emoji] = arg.gsub
+    end
+
+    # Attachment Options
+
+    o.on '--alert ALERT', 'Alert level. Optional: Yes Defaults: Set in script as "#439FE0" (a nice neutral blue) Accepts: "good", "warning", "danger", or a RGB hex value.' do |arg|
+      attachment[:color] = arg
+    end
+
+    o.on '--service SERVICE', 'Service involved. Optional: No Defaults: None Accepts: String' do |arg|
+      service[:value] = arg
+    end
+
+    o.on '--message MESSAGE', 'Message. Optional: No Defaults: None Accepts: String.' do |arg|
+      message[:value] = arg
+    end
+
+    o.on '--host HOST', 'Originating host. Optional: Yes Defaults: Value of hostname command Accepts: String' do |arg|
+      server[:value] = arg
+    end
+
+    o.on '--user USER', 'Originating user. Optional: Yes Defaults: Value of whoami command Accepts: String' do |arg|
+      user[:value] = arg
+    end
+
+  end
+
+  @parser.banner = "post_to_slack [options]"
+
+  @parser.parse!(argv)
+
+  # defaults
+
+  opts[:slack_url]                      ||= slack_post_url
+  opts[:slack_options][:channel]        ||= slack_channel_name
+  opts[:slack_options][:username]       ||= slack_user_name
+  opts[:slack_options][:icon_emoji]     ||= slack_user_emoji
+  opts[:slack_options][:text]           ||= "#{slack_mentions}, *#{app_name}* has sent a message:"
+  opts[:slack_options][:parse]          ||= "full"
+
+  attachment[:fallback]                 ||= "Please use a platform that can see formatted messages :P"
+  attachment[:color]                    ||= default_message_color
+
+  server[:value]                        ||= `hostname`.strip
+  user[:value]                          ||= `whoami`.strip
+
+  # add fields to the attachment
+  attachment[:fields] << server
+  attachment[:fields] << user
+  attachment[:fields] << service
+  attachment[:fields] << message
+
+  # add attachment to the message
+  opts[:slack_options][:attachments] << attachment
+opts[:slack_options]
+
+  opts
+end
+
+parsed_options = parse_options(ARGV)
+
+uri           = URI.parse(parsed_options[:slack_url])
+https         = Net::HTTP.new(uri.host,uri.port)
+https.use_ssl = true
+
+req           = Net::HTTP::Post.new(uri.path, initheader = {'Content-Type' =>'application/json'})
+req.body      = parsed_options[:slack_options].to_json
+puts req.body
+
+res           = https.request(req)
