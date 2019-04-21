@@ -11,11 +11,10 @@ Example of usage:
     - hosts: servers
       roles:
          - role: fai.slack_notifier
-           vars:
-             - slack_webhook_url: 'https://toto.com'
-             - slack_mentions: '@here'
-             - slack_channel: '#infra'
-             - app_name: 'code3'
+           slack_webhook_url: 'https://toto.com'
+           slack_mentions: '@here'
+           slack_channel: '#infra'
+           app_name: 'code3'
 
 License
 -------
