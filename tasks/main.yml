@@ -3,6 +3,11 @@
 - name: include vars
   include_vars: "main.yml"
 
+- name: ensure directory "{{ dest_directory }}" exists
+  file:
+    path: "{{ dest_directory }}"
+    state: directory
+
 - name: copy post_to_slack.rb to /scripts/post_to_slack.rb
   become: true
   template:
