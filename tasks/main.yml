@@ -1,8 +1,5 @@
 ---
 
-- name: include vars
-  include_vars: "main.yml"
-
 - name: ensure directory "{{ dest_directory }}" exists
   file:
     path: "{{ dest_directory }}"
